@@ -1,4 +1,4 @@
-const BACKEND_URL = "http://127.0.0.1:5000";
+const BACKEND_URL = "https://cancer-prediction-sqyo.onrender.com";
 
 const FEATURES = [
   { key: "mean_radius", label: "Radius", group: "mean", sample: 17.99 },
