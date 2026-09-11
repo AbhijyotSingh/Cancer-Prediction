@@ -5,12 +5,12 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 
 app = Flask(__name__)
-CORS(app)  # allow the static frontend (served from elsewhere) to call this API
+CORS(app)
 
-model = tf.keras.models.load_model("ANN.keras")
+model = tf.keras.models.load_model("ann.keras")
 scaler = joblib.load("scaler.pk")
 
-# Must match the exact column order used in train_and_save.py / the notebook.
+# Must match the exact column order used when the model was trained.
 FEATURE_ORDER = [
     "mean_radius", "mean_texture", "mean_perimeter", "mean_area",
     "mean_smoothness", "mean_compactness", "mean_concavity",
@@ -22,11 +22,12 @@ FEATURE_ORDER = [
     "worst_concave_points", "worst_symmetry", "worst_fractal_dimension",
 ]
 
+_dummy = scaler.transform(np.zeros((1, len(FEATURE_ORDER))))
+model.predict(_dummy, verbose=0)
 
 @app.route("/", methods=["GET"])
 def health():
     return jsonify({"status": "ok", "message": "Cell Signal backend is awake"})
-
 
 @app.route("/predict", methods=["POST"])
 def predict():
