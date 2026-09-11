@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cell Signal — Tumor Nuclei Analysis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css.css">
+</head>
+<body>
+<div class="page">
+
+    <header class="masthead">
+        <p class="masthead-kicker">Digitized FNA measurements</p>
+        <h1>Cell Signal</h1>
+        <p class="lede">Enter the nuclei measurements from a fine-needle aspirate below. A neural network trained on the Wisconsin breast cancer dataset will estimate whether the mass reads as benign or malignant.</p>
+    </header>
+
+    <div class="layout">
+
+        <form id="scanForm" class="form-column">
+
+            <fieldset class="field-group">
+                <legend>Mean values <span>across the cell nuclei in the sample</span></legend>
+                <div class="field-grid" id="group-mean"></div>
+            </fieldset>
+
+            <fieldset class="field-group">
+                <legend>Standard error <span>of each measurement</span></legend>
+                <div class="field-grid" id="group-error"></div>
+            </fieldset>
+
+            <fieldset class="field-group">
+                <legend>Worst / largest <span>value recorded per feature</span></legend>
+                <div class="field-grid" id="group-worst"></div>
+            </fieldset>
+
+            <div class="form-actions">
+                <button type="submit" id="runBtn">Run analysis</button>
+                <button type="button" id="fillSample">Use sample case</button>
+            </div>
+        </form>
+
+        <aside class="ticket-column">
+            <div class="ticket" id="ticket">
+                <div class="ticket-edge" id="ticketEdge"></div>
+                <div class="ticket-body">
+                    <p class="ticket-kicker">Report</p>
+                    <p class="ticket-status" id="ticketStatus">Awaiting measurements</p>
+                    <p class="ticket-score" id="ticketScore">—</p>
+                    <p class="ticket-note" id="ticketNote">Fill in the form and run the analysis to see a result here.</p>
+                </div>
+            </div>
+            <p class="disclaimer">This is a statistical estimate from a small demonstration model. It is not a medical diagnosis and should never replace evaluation by a pathologist or oncologist.</p>
+        </aside>
+
+    </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
