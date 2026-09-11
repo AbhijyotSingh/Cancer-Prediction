@@ -1,5 +1,22 @@
 const BACKEND_URL = "https://cancer-prediction-sqyo.onrender.com";
 
+if (Notification.permission !== "granted" && Notification.permission !== "denied") {
+  Notification.requestPermission();
+}
+
+window.addEventListener("load", () => {
+    fetch(BACKEND_URL)
+        .then(() => {
+            console.log("Backend warmed up");
+            if (Notification.permission === "granted") {
+                new Notification("Link Scanner is ready!", {
+                    body: "The backend has finished waking up — you can scan now."
+                });
+            }
+        })
+        .catch(error => console.log("Backend warm-up:", error));
+});
+
 const FEATURES = [
   { key: "mean_radius", label: "Radius", group: "mean", sample: 17.99 },
   { key: "mean_texture", label: "Texture", group: "mean", sample: 10.38 },
