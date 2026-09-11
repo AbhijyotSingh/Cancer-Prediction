@@ -7,7 +7,7 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)  # allow the static frontend (served from elsewhere) to call this API
 
-model = tf.keras.models.load_model("ann.keras")
+model = tf.keras.models.load_model("ANN.keras")
 scaler = joblib.load("scaler.pk")
 
 # Must match the exact column order used in train_and_save.py / the notebook.
