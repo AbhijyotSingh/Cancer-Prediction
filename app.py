@@ -7,10 +7,10 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
 
-model = tf.keras.models.load_model("ann.keras")
+model = tf.keras.models.load_model("ANN.keras")
 scaler = joblib.load("scaler.pk")
 
-# Must match the exact column order used when the model was trained.
+
 FEATURE_ORDER = [
     "mean_radius", "mean_texture", "mean_perimeter", "mean_area",
     "mean_smoothness", "mean_compactness", "mean_concavity",
