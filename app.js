@@ -9,7 +9,7 @@ window.addEventListener("load", () => {
         .then(() => {
             console.log("Backend warmed up");
             if (Notification.permission === "granted") {
-                new Notification("Link Scanner is ready!", {
+                new Notification("Cell Signal is ready!", {
                     body: "The backend has finished waking up — you can scan now."
                 });
             }
