@@ -18,6 +18,13 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 app = Flask(__name__)
 CORS(app)
 
+# Label direction. In testing, typical malignant cases came out as class 0 and
+# typical benign cases as class 1, i.e. the model's output of 1 means BENIGN in
+# this dataset, despite the column name benign_0__mal_1. So the output is flipped
+# before it is sent to the page. Set to True if check_samples.py shows that rows
+# with target = 1 have LARGE measurements (mean radius around 17 or more).
+MODEL_OUTPUT_1_IS_MALIGNANT = False
+
 FEATURE_ORDER = [
     "mean_radius", "mean_texture", "mean_perimeter", "mean_area",
     "mean_smoothness", "mean_compactness", "mean_concavity",
@@ -83,7 +90,11 @@ def predict():
     with lock:
         interpreter.set_tensor(input_index, X)
         interpreter.invoke()
-        probability = float(interpreter.get_tensor(output_index)[0][0])
+        raw_output = float(interpreter.get_tensor(output_index)[0][0])
+
+    # The frontend expects: Predicted_outcome 1 = malignant, and
+    # probability = chance of malignant.
+    probability = raw_output if MODEL_OUTPUT_1_IS_MALIGNANT else 1.0 - raw_output
 
     return jsonify({
         "Predicted_outcome": int(probability > 0.5),
