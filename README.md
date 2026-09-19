@@ -5,4 +5,3 @@ for the 25 tumor-nuclei measurements the model was trained on, plus a Flask
 API that loads the trained Keras model and its scaler to return a
 benign/malignant estimate.
 
-(The model was trained but the website isn't working)
