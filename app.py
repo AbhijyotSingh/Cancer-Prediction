@@ -7,7 +7,7 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 
 try:
-    from tflite_runtime.interpreter import Interpreter  # small runtime used on Render
+        from tflite_runtime.interpreter import Interpreter  # type: ignore  # small runtime used on Render
 except ImportError:  # local development with full TensorFlow installed
     import tensorflow as tf
 
