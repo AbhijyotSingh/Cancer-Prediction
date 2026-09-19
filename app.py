@@ -1,15 +1,22 @@
+import json
+import os
+import threading
+
 import numpy as np
-import joblib
-import tensorflow as tf
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 
+try:
+    from tflite_runtime.interpreter import Interpreter  # small runtime used on Render
+except ImportError:  # local development with full TensorFlow installed
+    import tensorflow as tf
+
+    Interpreter = tf.lite.Interpreter
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 app = Flask(__name__)
 CORS(app)
-
-model = tf.keras.models.load_model("ANN.keras")
-scaler = joblib.load("scaler.pk")
-
 
 FEATURE_ORDER = [
     "mean_radius", "mean_texture", "mean_perimeter", "mean_area",
@@ -22,15 +29,41 @@ FEATURE_ORDER = [
     "worst_concave_points", "worst_symmetry", "worst_fractal_dimension",
 ]
 
-_dummy = scaler.transform(np.zeros((1, len(FEATURE_ORDER))))
-model.predict(_dummy, verbose=0)
+interpreter = None
+input_index = output_index = None
+scaler_mean = scaler_scale = None
+model_error = None
+lock = threading.Lock()  # a TFLite interpreter is not thread-safe
+
+try:
+    with open(os.path.join(BASE_DIR, "scaler.json")) as f:
+        scaler_data = json.load(f)
+    scaler_mean = np.array(scaler_data["mean"], dtype=np.float64)
+    scaler_scale = np.array(scaler_data["scale"], dtype=np.float64)
+
+    interpreter = Interpreter(model_path=os.path.join(BASE_DIR, "ANN.tflite"))
+    interpreter.allocate_tensors()
+    input_index = interpreter.get_input_details()[0]["index"]
+    output_index = interpreter.get_output_details()[0]["index"]
+except Exception as exc:  # noqa: BLE001
+    model_error = f"{type(exc).__name__}: {exc}"
+
 
 @app.route("/", methods=["GET"])
 def health():
-    return jsonify({"status": "ok", "message": "Cell Signal backend is awake"})
+    return jsonify({
+        "status": "ok",
+        "message": "Cell Signal backend is awake",
+        "model_ready": interpreter is not None,
+        "model_error": model_error,
+    })
+
 
 @app.route("/predict", methods=["POST"])
 def predict():
+    if interpreter is None:
+        return jsonify({"error": f"The model failed to load: {model_error}"}), 500
+
     payload = request.get_json(silent=True)
     if not payload:
         return jsonify({"error": "Expected a JSON body with 25 feature values"}), 400
@@ -40,19 +73,24 @@ def predict():
         return jsonify({"error": f"Missing fields: {missing}"}), 400
 
     try:
-        row = [float(payload[key]) for key in FEATURE_ORDER]
+        row = np.array([float(payload[key]) for key in FEATURE_ORDER], dtype=np.float64)
     except (TypeError, ValueError):
         return jsonify({"error": "All fields must be numeric"}), 400
 
-    X = scaler.transform(np.array(row).reshape(1, -1))
-    probability = float(model.predict(X, verbose=0)[0][0])
-    predicted_outcome = int(probability > 0.5)
+    # Same as StandardScaler.transform
+    X = ((row - scaler_mean) / scaler_scale).astype(np.float32).reshape(1, -1)
+
+    with lock:
+        interpreter.set_tensor(input_index, X)
+        interpreter.invoke()
+        probability = float(interpreter.get_tensor(output_index)[0][0])
 
     return jsonify({
-        "Predicted_outcome": predicted_outcome,
+        "Predicted_outcome": int(probability > 0.5),
         "probability": probability,
     })
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=False)

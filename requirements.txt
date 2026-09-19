@@ -1,7 +1,5 @@
-flask
-flask-cors
-tensorflow
-scikit-learn
-joblib
-numpy
-gunicorn
+flask>=3.0
+flask-cors>=4.0
+gunicorn>=22.0
+numpy==1.26.4
+tflite-runtime==2.14.0
